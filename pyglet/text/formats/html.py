@@ -171,13 +171,7 @@ class HTMLDecoder(HTMLParser, structured.StructuredTextDecoder):
             self.add_text(data)
         else:
             data = _whitespace_re.sub(' ', data)
-            if data.strip():
-                self.prepare_for_data()
-                if self.block_begin or self.strip_leading_space:
-                    data = data.lstrip()
-                    self.block_begin = False
-                self.add_text(data)
-            self.strip_leading_space = data.endswith(' ')
+            self.add_text(data)
 
     def handle_starttag(self, tag, case_attrs):
         if self.in_metadata:
@@ -218,17 +212,11 @@ class HTMLDecoder(HTMLParser, structured.StructuredTextDecoder):
             if 'size' in attrs:
                 size = attrs['size']
                 try:
-                    if size.startswith('+'):
-                        size = self._font_size_stack[-1] + int(size[1:])
-                    elif size.startswith('-'):
-                        size = self._font_size_stack[-1] - int(size[1:])
-                    else:
-                        size = int(size)
+                    size = int(float(size))
                 except ValueError:
-                    size = 3
+                    size = 12
                 self._font_size_stack.append(size)
-                if size in self.font_sizes:
-                    style['font_size'] = self.font_sizes.get(size, 3)
+                style['font_size'] = size
             else:
                 self._font_size_stack.append(self._font_size_stack[-1])
             if 'color' in attrs:
@@ -269,6 +257,8 @@ class HTMLDecoder(HTMLParser, structured.StructuredTextDecoder):
         elif element == 'p':
             if attrs.get('align') in ('left', 'center', 'right'):
                 style['align'] = attrs['align']
+            if attrs.get('valign') in ('top', 'center', 'bottom'):
+                style['valign'] = attrs['valign']
         elif element == 'center':
             style['align'] = 'center'
         elif element == 'pre':

@@ -1036,6 +1036,11 @@ class TextLayout(object):
                 return self._y + line.ascent // 2 - line.descent // 4
             else:
                 return self._y + height // 2 - offset
+        elif self._anchor_y == 'center2':
+            if len(lines) == 1:
+            	return self._y + lines[0].ascent // 2 - lines[0].descent // 4
+            else:
+                return self._y + (self.content_height / 2)
         else:
             assert False, 'Invalid anchor_y'
 
@@ -1120,6 +1125,10 @@ class TextLayout(object):
             self._document.get_style_runs('align'),
             lambda value: value in ('left', 'right', 'center'),
             'left')
+        valign_iterator = runlist.FilteredRunIterator(
+            self._document.get_style_runs('valign'),
+            lambda value: value in ('top', 'bottom', 'center'),
+            'top')
         if self._width is None:
             wrap_iterator = runlist.ConstRunIterator(
                 len(self.document.text), False)
@@ -1146,6 +1155,7 @@ class TextLayout(object):
 
         line = _Line(start)
         line.align = align_iterator[start]
+        line.valign = valign_iterator[start]
         line.margin_left = self._parse_distance(margin_left_iterator[start])
         line.margin_right = self._parse_distance(margin_right_iterator[start])
         if start == 0 or self.document.text[start - 1] in u'\n\u2029':
@@ -1292,6 +1302,7 @@ class TextLayout(object):
                             try:
                                 line = _Line(next_start)
                                 line.align = align_iterator[next_start]
+                                line.valign = valign_iterator[next_start]
                                 line.margin_left = self._parse_distance(
                                     margin_left_iterator[next_start])
                                 line.margin_right = self._parse_distance(
